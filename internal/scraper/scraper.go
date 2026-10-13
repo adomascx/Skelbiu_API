@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -17,6 +18,7 @@ import (
 	"github.com/adomascx/Skelbiu_API/internal/model"
 	"github.com/gocolly/colly/v2"
 	utls "github.com/refraction-networking/utls"
+	"golang.org/x/net/http2"
 )
 
 const (
@@ -180,8 +182,8 @@ func newUtlsClient() *http.Client {
 	}
 
 	// Connect and wrap with uTLS
-	utlsTransport := &http.Transport{
-		DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+	utlsTransport := &http2.Transport{
+		DialTLSContext: func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
 			// Open TCP connection
 			rawConn, err := dialer.DialContext(ctx, network, addr)
 			if err != nil {
@@ -191,7 +193,7 @@ func newUtlsClient() *http.Client {
 			// Config uTLS
 			utlsConfig := &utls.Config{
 				ServerName: skelbiuHost,
-				NextProtos: []string{"http/1.1"},
+				NextProtos: []string{"h2", "http/1.1"},
 				MinVersion: utls.VersionTLS12,
 			}
 
